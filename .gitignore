@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Data (private datasets kabhi commit mat karo)
+data/*.csv
+data/*.xlsx
+data/private/
+models/*.pkl
+models/*.joblib
+models/*.bin
+
+# Ollama / FAISS local artifacts
+*.faiss
+*.index
+faiss_index/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
