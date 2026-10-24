@@ -1,0 +1,6 @@
+﻿product_id,product_name,category,cost_price,selling_price,current_stock
+P001,Rice 5kg,Grains,240,290,120
+P002,Cooking Oil 1L,Oils,110,135,85
+P003,Sugar 1kg,Grains,38,45,200
+P004,Tea Powder 500g,Beverages,180,225,60
+P005,Detergent 1kg,Household,95,120,45

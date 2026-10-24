@@ -1,0 +1,6 @@
+﻿expense_id,date,category,amount,note
+E001,2026-01-01,Rent,12000,Monthly shop rent
+E002,2026-01-05,Electricity,1800,January bill
+E003,2026-01-08,Wages,8000,Part-time helper
+E004,2026-01-15,Transport,600,Stock delivery
+E005,2026-01-20,Internet,499,Broadband
