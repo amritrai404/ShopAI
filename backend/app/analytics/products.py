@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Product, Sale, SaleItem
+from app.models import Product, SaleItem
 from app.schemas.analytics import LowStockItem, ProductPerformance
 
 
