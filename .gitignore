@@ -37,3 +37,6 @@ faiss_index/
 
 # Logs
 *.log
+
+# Stray root-level app/ (should only exist in backend/)
+/app/
