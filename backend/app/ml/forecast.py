@@ -45,9 +45,10 @@ def train_forecast(sales_df: pd.DataFrame, test_ratio: float = 0.2) -> dict:
 
     train_df, test_df = chronological_split(featured, test_ratio=test_ratio)
 
-    X_train = train_df[FEATURE_COLUMNS].values
+    # Keep DataFrame (not .values) so sklearn stores feature names
+    X_train = train_df[FEATURE_COLUMNS]
     y_train = train_df[TARGET_COLUMN].values
-    X_test = test_df[FEATURE_COLUMNS].values
+    X_test = test_df[FEATURE_COLUMNS]
     y_test = test_df[TARGET_COLUMN].values
 
     model = RandomForestRegressor(
