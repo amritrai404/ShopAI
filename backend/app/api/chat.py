@@ -14,7 +14,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 @router.post("", response_model=ChatResponse)
 def chat(payload: ChatRequest, db: Session = Depends(get_db)):
     try:
-        result = handle_chat(payload.message, payload.session_id, db)
+        result = handle_chat(payload.message, payload.session_id, db, mode=payload.mode)
     except SQLAlchemyError as exc:
         raise HTTPException(status_code=500, detail=f"Database error: {exc}") from exc
     except Exception as exc:

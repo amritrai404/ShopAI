@@ -76,7 +76,8 @@ def test_chat_tool_calling_flow(client_with_data):
         }
     }
 
-    with patch("app.llm.orchestrator.get_ollama_client") as mock_get:
+    # Patch at the point of use: app.llm.router.get_ollama_client
+    with patch("app.llm.router.get_ollama_client") as mock_get:
         mock_client = mock_get.return_value
         mock_client.chat.side_effect = [fake_tool_response, fake_final_response]
 
@@ -85,7 +86,8 @@ def test_chat_tool_calling_flow(client_with_data):
         body = r.json()
         assert "get_revenue" in body["tools_used"]
         assert body["session_id"]
-        assert "₹60" in body["answer"] or "60" in body["answer"]
+        assert "60" in body["answer"]
+        assert body["mode_used"] == "local"
 
 
 def test_chat_no_tool_needed(client_with_data):
@@ -98,12 +100,13 @@ def test_chat_no_tool_needed(client_with_data):
         }
     }
 
-    with patch("app.llm.orchestrator.get_ollama_client") as mock_get:
+    with patch("app.llm.router.get_ollama_client") as mock_get:
         mock_client = mock_get.return_value
         mock_client.chat.return_value = fake_response
 
         r = client.post("/chat", json={"message": "Hi"})
-        assert r.status_code == 200
+        assert r.status_code == 200, r.json()
         body = r.json()
         assert "ShopAI" in body["answer"]
         assert body["tools_used"] == []
+        assert body["mode_used"] == "local"
