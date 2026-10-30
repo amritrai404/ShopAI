@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.analytics import router as analytics_router
+from app.api.chat import router as chat_router
 from app.api.forecast import router as forecast_router
 
 app = FastAPI(
@@ -11,6 +12,7 @@ app = FastAPI(
 
 app.include_router(analytics_router)
 app.include_router(forecast_router)
+app.include_router(chat_router)
 
 
 @app.get("/health")
