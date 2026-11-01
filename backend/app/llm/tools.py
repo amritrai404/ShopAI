@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Callable
 
+import pandas as pd
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.analytics import (
@@ -13,9 +15,8 @@ from app.analytics import (
     get_top_products,
 )
 from app.ml.predict import find_latest_model, generate_forecast, load_model
-import pandas as pd
-from sqlalchemy import select
-from app.models import Product, Sale, SaleItem
+from app.models import Document, DocumentChunk, Product, Sale, SaleItem
+from app.rag.retrieve import retrieve
 
 
 def _decimal_to_float(value) -> float:
@@ -141,6 +142,47 @@ def _tool_get_forecast(db: Session, days: int = 7) -> dict:
     }
 
 
+def _tool_search_documents(db: Session, query: str, document_id: int | None = None, top_k: int = 5) -> dict:
+    """
+    Search uploaded business documents (PDFs) for relevant chunks.
+    If document_id is None, searches ALL documents and merges hits.
+    """
+    if document_id is not None:
+        doc = db.get(Document, document_id)
+        if doc is None:
+            return {"error": f"Document {document_id} not found"}
+        docs = [doc]
+    else:
+        docs = db.execute(select(Document)).scalars().all()
+        if not docs:
+            return {"status": "no_documents", "message": "No documents have been uploaded yet."}
+
+    all_hits: list[dict] = []
+    for doc in docs:
+        chunks = (
+            db.query(DocumentChunk)
+            .filter(DocumentChunk.document_id == doc.id)
+            .order_by(DocumentChunk.id.asc())
+            .all()
+        )
+        if not chunks:
+            continue
+        chunks_meta = [
+            {"page": c.page, "chunk_index": c.chunk_index, "text": c.text} for c in chunks
+        ]
+        try:
+            hits = retrieve(doc.id, query, chunks_meta, top_k=top_k)
+        except FileNotFoundError:
+            continue
+        for h in hits:
+            h["document_id"] = doc.id
+            h["filename"] = doc.filename
+            all_hits.append(h)
+
+    all_hits.sort(key=lambda x: x["score"], reverse=True)
+    return {"status": "ok", "hits": all_hits[:top_k]}
+
+
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     "get_revenue": {
         "description": "Get total revenue, discounts, and transaction counts for a date range.",
@@ -212,11 +254,26 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {
         },
         "handler": _tool_get_forecast,
     },
+    "search_documents": {
+        "description": "Search uploaded business documents (invoices, supplier price lists, shop policies) for relevant information. Use this when the user asks about content from their uploaded documents.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query in natural language."},
+                "document_id": {
+                    "type": "integer",
+                    "description": "Optional specific document ID. Omit to search all documents.",
+                },
+                "top_k": {"type": "integer", "description": "Number of chunks to return.", "default": 5},
+            },
+            "required": ["query"],
+        },
+        "handler": _tool_search_documents,
+    },
 }
 
 
 def get_tool_schemas() -> list[dict]:
-    """Return OpenAI-compatible tool schemas for the LLM."""
     return [
         {
             "type": "function",
@@ -231,7 +288,6 @@ def get_tool_schemas() -> list[dict]:
 
 
 def execute_tool(name: str, arguments: dict, db: Session) -> dict:
-    """Execute a tool by name with validated arguments. Returns JSON-serializable dict."""
     if name not in TOOL_REGISTRY:
         return {"error": f"Unknown tool: {name}"}
 

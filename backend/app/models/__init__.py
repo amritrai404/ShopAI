@@ -3,6 +3,7 @@ from app.models.sale import Sale, SaleItem
 from app.models.expense import Expense
 from app.models.ml_model_run import MLModelRun
 from app.models.chat import ChatSession, ChatMessage
+from app.models.document import Document, DocumentChunk
 
 __all__ = [
     "Product",
@@ -12,4 +13,6 @@ __all__ = [
     "MLModelRun",
     "ChatSession",
     "ChatMessage",
+    "Document",
+    "DocumentChunk",
 ]
