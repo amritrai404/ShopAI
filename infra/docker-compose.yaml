@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shopai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shopai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shopai_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-shopai}
+    ports:
+      - "5432:5432"
+    volumes:
+      - shopai_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shopai} -d ${POSTGRES_DB:-shopai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: shopai-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-shopai}:${POSTGRES_PASSWORD:-shopai_dev_password}@postgres:5432/${POSTGRES_DB:-shopai}
+      SECRET_KEY: ${SECRET_KEY:-change-me}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b-instruct}
+    ports:
+      - "8000:8000"
+    volumes:
+      - shopai_models:/app/models
+      - shopai_uploads:/app/data/uploads
+      - shopai_faiss:/app/faiss_index
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  shopai_pgdata:
+  shopai_models:
+  shopai_uploads:
+  shopai_faiss:
