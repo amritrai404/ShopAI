@@ -40,3 +40,12 @@ faiss_index/
 
 # Stray root-level app/ (should only exist in backend/)
 /app/
+
+# Frontend temp / test files
+frontend/test.csv
+frontend/*.tmp
+frontend/.vite/
+
+# Frontend scaffold leftovers (agar wapas aayein)
+frontend/src/assets/*.svg
+frontend/src/App.css
