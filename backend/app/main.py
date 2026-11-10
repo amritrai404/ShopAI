@@ -6,6 +6,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from app.api import data as data_api
 
 from app.api.analytics import router as analytics_router
 from app.api.chat import router as chat_router
@@ -56,7 +57,7 @@ app.include_router(analytics_router)
 app.include_router(forecast_router)
 app.include_router(chat_router)
 app.include_router(documents_router)
-
+app.include_router(data_api.router, prefix="/data", tags=["Data"])
 
 @app.get("/health")
 def health():
