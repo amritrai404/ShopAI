@@ -1,4 +1,4 @@
-# ShopMate — Your AI Business Partner
+# ShopMate — Your AI Business Partner (pause till 30th of November)
 
 Local-first AI business intelligence for small shops.
 No paid LLM API keys required.
